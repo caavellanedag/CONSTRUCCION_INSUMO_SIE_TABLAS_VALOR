@@ -1,0 +1,25 @@
+{
+    "collab_server" : "",
+    "contents" : "",
+    "created" : 1636562359566.000,
+    "dirty" : false,
+    "encoding" : "UTF-8",
+    "folds" : "",
+    "hash" : "0",
+    "id" : "A36A6F05",
+    "lastKnownWriteTime" : 1636596560,
+    "last_content_update" : 1636596560541,
+    "path" : "//prowin04/cavellaneda/EJERCICIOS/EJERCICIOS 2021/VERIFICACION_CALCULOS/210923_CONSTRUCCION_INSUMO_SIE_TABLAS_VALOR/src/Funciones.R",
+    "project_path" : "src/Funciones.R",
+    "properties" : {
+        "cursorPosition" : "1832,20",
+        "scrollLine" : "1785"
+    },
+    "read_only" : false,
+    "read_only_alternatives" : [
+    ],
+    "relative_order" : 2,
+    "source_on_save" : false,
+    "source_window" : "",
+    "type" : "r_source"
+}
