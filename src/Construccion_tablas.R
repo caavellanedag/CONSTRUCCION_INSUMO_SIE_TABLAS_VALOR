@@ -156,7 +156,7 @@ df_join <- df_completo %>%
                   "AREA_USO")) %>% 
   left_join(tabla_correlativa[, c("codigo_produccion", "tabla")], by = c("EC_MO_ID" = "codigo_produccion"))
 
-# 
+
 # wb <- createWorkbook("Camilo Avellaneda")
 # addWorksheet(wb, "Consolidado")
 # writeData(wb, "Consolidado", df_completo_1)
@@ -164,24 +164,25 @@ df_join <- df_completo %>%
 #                         nombre_export, ".xlsx"), overwrite = T)
 
 
-df_to_sas_T05 <- df_join %>%
-  filter(str_detect(tabla, "^T05")) %>% 
+
+df_to_sas_T02 <- df_join %>% 
+  filter(str_detect(tabla, "^T02")) %>% 
   split(., seq(nrow(.))) %>% 
   map_dfr(~marca_manzana_row(.x)) %>% 
   split(., seq(nrow(.))) %>% 
   map_dfr(~uso_row(.x))
   
-
-df_to_sas_T06 <- df_join %>%
-  filter(str_detect(tabla, "^T06")) %>% 
+df_to_sas_T03 <- df_join %>% 
+  filter(str_detect(tabla, "^T03")) %>% 
   split(., seq(nrow(.))) %>% 
   map_dfr(~marca_manzana_row(.x)) %>% 
   split(., seq(nrow(.))) %>% 
   map_dfr(~uso_row(.x))
 
-save(df_to_sas_T05, df_to_sas_T06, file = "output/Base_sas_T05_T06.RData")
+save(df_to_sas_T02, df_to_sas_T03, file = "output/Base_sas_T02_T03.RData")
 
-df_join %>% filter(tabla == "T02-2") %>% 
+
+Cdf_join %>% filter(tabla == "T02-2") %>% 
   group_by(TIPO_CARACT_RES2) %>% count
 # uso_row(r[1,])
 # r <- df_join %>% 

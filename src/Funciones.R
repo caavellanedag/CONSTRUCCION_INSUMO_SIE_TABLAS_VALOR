@@ -27,26 +27,22 @@ uso_row <- function(row){
   }
   return(row_1)
 }
-
 marca_manzana_row <- function(row){
   #row <- t2
   #row <- t(row) %>% as.data.frame()
-  if((row$TIPO_CARACT_RES1 == row$TIPO_CARACT_RES2) & 
-     (row$TIPO_CARACT_RES2 == 8 & row$TIPO_CARACT_RES1 %in% c(0, 1))){
+  if(row$TIPO_CARACT_RES2 == 8 & row$TIPO_CARACT_RES1 %in% c(0, 1)){
     row_1 <- row  %>% mutate(TIPO_CARACT_RES = NA) %>% 
       dplyr::select(tabla, EC_MO_ID, CODIGO_USO1, CODIGO_USO2,
                     EDAD_PREDIO1, PUNTAJE1, AREA_USO1,
                     AREA_USO2, VAL_METRO_CUAD, AREA_USO,
                     TIPO_CARACT_RES)
-  }else if((row$TIPO_CARACT_RES1 == row$TIPO_CARACT_RES2) & 
-           (row$TIPO_CARACT_RES2 != 8 | !(row$TIPO_CARACT_RES1 %in% c(0,1)))){
+  }else if(row$TIPO_CARACT_RES1 == row$TIPO_CARACT_RES2){
     row_1 <- row  %>% mutate(TIPO_CARACT_RES = TIPO_CARACT_RES1) %>% 
       dplyr::select(tabla, EC_MO_ID, CODIGO_USO1, CODIGO_USO2,
                     EDAD_PREDIO1, PUNTAJE1, AREA_USO1,
                     AREA_USO2, VAL_METRO_CUAD, AREA_USO,
                     TIPO_CARACT_RES)
-  }else if((as.numeric(as.character(row$TIPO_CARACT_RES2)) == (as.numeric(as.character(row$TIPO_CARACT_RES1)) + 1)) & 
-           (row$TIPO_CARACT_RES2 != 8 | row$TIPO_CARACT_RES1 != 0)){
+  }else if((as.numeric(as.character(row$TIPO_CARACT_RES2)) == (as.numeric(as.character(row$TIPO_CARACT_RES1)) + 1))){
     row_1 <- row %>% 
       pivot_longer(names_to = "TIPO_CARACT_PREVIA", values_to = "TIPO_CARACT_RES", cols = c("TIPO_CARACT_RES1", "TIPO_CARACT_RES2")) %>% 
       as.data.frame() %>%
