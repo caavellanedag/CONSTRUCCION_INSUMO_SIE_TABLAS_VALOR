@@ -108,6 +108,9 @@ condicion_1[m]<-gsub("IF MODELO_USO = 'T16'",paste0("IF MODELO_USO = 'T16' AND C
 
 condicion_1<-unique(condicion_1)
 
-write.xlsx(condicion_1, "Condiciones_ANDREA2.xlsx",sheetName ="Condiciones" ,row.names=F,append=F)
+
+write.xlsx(condicion_1, 
+           paste0(str_replace_all(Sys.Date(), c("-" = "", "2022" = "")), "_CONDICIONES_ELABORADAS_TABLAS_VALOR.xlsx"),
+           sheetName ="Condiciones" ,row.names=F,append=F)
 #write.xlsx(condicion_uso_1, "Condiciones_ANDREA1.xlsx",sheetName ="Condiciones_Usos_multiples" ,row.names=F,append=T)
 
