@@ -124,11 +124,16 @@ df_completo <- df_completo %>% mutate(AREA_TERRENO1 = case_when(EC_MO_ID == 389 
                        AREA_TERRENO2 = case_when(EC_MO_ID == 389 ~ "100000000",
                                                   TRUE ~ AREA_TERRENO2))
 
+df_t01_2_terreno_2 <- df_completo %>% 
+  filter(EC_MO_ID == 389) %>% 
+  mutate(EC_MO_ID = 389, AREA_TERRENO1 = "0",AREA_TERRENO2 = "0")
+
 df_t01_2_terreno <- df_completo %>% 
   filter(EC_MO_ID == 390) %>% 
   mutate(EC_MO_ID = 389, AREA_TERRENO1 = "0,01",AREA_TERRENO2 = "48,99")
 
-df_completo_1 <- rbind(df_completo, df_t01_2_terreno) %>% as.data.frame()
+df_completo_1 <- rbind(df_completo, df_t01_2_terreno, df_t01_2_terreno_2) %>% as.data.frame()
+
 
 # df_separados <- pmap(list(c(rep("input/T01.xlsx", 8), rep("input/T02.xlsx", 4), "input/T04.xlsx", rep("input/T05.xlsx", 4), rep("input/T03.xlsx", 4), rep("input/T06.xlsx", 4), rep("input/T19.xlsx", 3)),
 #                              c(paste0("T01-", 1:8), paste0("T02-", 1:4), "T04", paste0("T05-", 1:4), rep("T03", 4), rep("T06", 4), rep("T19", 3)),
@@ -157,72 +162,124 @@ df_join <- df_completo %>%
   left_join(tabla_correlativa[, c("codigo_produccion", "tabla")], by = c("EC_MO_ID" = "codigo_produccion"))
 
 
+
+# df_join %>% 
+#   filter(tabla == "T05-1") %>% 
+#   dplyr::select(CODIGO_USO1, CODIGO_USO2) %>% distinct
+
 # wb <- createWorkbook("Camilo Avellaneda")
 # addWorksheet(wb, "Consolidado")
 # writeData(wb, "Consolidado", df_completo_1)
 # saveWorkbook(wb, paste0("output/", str_replace_all(Sys.Date(), c("-" = "", "2021" = "21")),
 #                         nombre_export, ".xlsx"), overwrite = T)
+# 
 
 
-
-df_to_sas_T02 <- df_join %>% 
-  filter(str_detect(tabla, "^T02")) %>% 
-  split(., seq(nrow(.))) %>% 
-  map_dfr(~marca_manzana_row(.x)) %>% 
-  split(., seq(nrow(.))) %>% 
-  map_dfr(~uso_row(.x))
-  
-df_to_sas_T03 <- df_join %>% 
-  filter(str_detect(tabla, "^T03")) %>% 
-  split(., seq(nrow(.))) %>% 
-  map_dfr(~marca_manzana_row(.x)) %>% 
-  split(., seq(nrow(.))) %>% 
+df_to_sas_T01 <- df_join %>%
+  filter(str_detect(tabla, "^T01")) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~marca_manzana_row(.x)) %>%
+  split(., seq(nrow(.))) %>%
   map_dfr(~uso_row(.x))
 
-save(df_to_sas_T02, df_to_sas_T03, file = "output/Base_sas_T02_T03.RData")
+df_to_sas_T02 <- df_join %>%
+  filter(str_detect(tabla, "^T02")) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~marca_manzana_row(.x)) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~uso_row(.x))
+
+df_to_sas_T03 <- df_join %>%
+  filter(str_detect(tabla, "^T03")) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~marca_manzana_row(.x)) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~uso_row(.x))
+
+df_to_sas_T04 <- df_join %>%
+  filter(str_detect(tabla, "^T04")) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~marca_manzana_row(.x)) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~uso_row(.x))
+
+df_to_sas_T05 <- df_join %>%
+  filter(str_detect(tabla, "^T05")) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~marca_manzana_row(.x)) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~uso_row(.x))
+
+df_to_sas_T06 <- df_join %>%
+  filter(str_detect(tabla, "^T06")) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~marca_manzana_row(.x)) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~uso_row(.x))
+
+df_to_sas_T07 <- df_join %>%
+  filter(str_detect(tabla, "^T07")) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~marca_manzana_row(.x)) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~uso_row(.x))
+
+df_to_sas_T19 <- df_join %>%
+  filter(str_detect(tabla, "^T19")) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~marca_manzana_row(.x)) %>%
+  split(., seq(nrow(.))) %>%
+  map_dfr(~uso_row(.x))
 
 
-Cdf_join %>% filter(tabla == "T02-2") %>% 
-  group_by(TIPO_CARACT_RES2) %>% count
-# uso_row(r[1,])
-# r <- df_join %>% 
-#   filter(tabla == "T02-2") %>% slice(1:10)
+# save(df_to_sas_T01, df_to_sas_T05, df_to_sas_T06, df_to_sas_T07,
+#      df_to_sas_T04, df_to_sas_T19, file = "output/Base_sas_T01_T04_T05_T06_T07_T19.RData")
+
+load("output/Base_sas_T01_T04_T05_T06_T07_T19.RData")
+load("output/Base_sas_T02_T03.RData")
+
+df_to_sas <- rbind(df_to_sas_T01,
+  df_to_sas_T02,
+  df_to_sas_T03,
+  df_to_sas_T04,
+  df_to_sas_T05,
+  df_to_sas_T06,
+  df_to_sas_T07,
+  df_to_sas_T19) %>% as.data.frame()
+
+df_to_sas <- df_to_sas %>% mutate(AREA_TERRENO1 = "", AREA_TERRENO2 = "")
+
+df_to_sas <- df_to_sas %>% mutate(AREA_TERRENO1 = case_when(tabla == "T01-2" ~ "49",
+                                                                TRUE ~ AREA_TERRENO1),
+                                      AREA_TERRENO2 = case_when(tabla == "T01-2" ~ "100000000",
+                                                                TRUE ~ AREA_TERRENO2))
+
+df__to_sas_t01_2_terreno <- df_to_sas %>% 
+  filter(tabla == "T01-3") %>% 
+  mutate(tabla = "T01-2", AREA_TERRENO1 = "0,01", AREA_TERRENO2 = "48,99")
+
+df__to_sas_t01_2_terreno_2 <- df_to_sas %>% 
+  filter(tabla == "T01-2") %>% 
+  mutate(AREA_TERRENO1 = "0", AREA_TERRENO2 = "0")
 
 
+df_to_sas_1 <- rbind(df_to_sas, df__to_sas_t01_2_terreno, df__to_sas_t01_2_terreno_2) %>% as.data.frame()
 
-df_test <- df_join %>% 
-  filter(tabla == "T02-2" & CODIGO_USO2 == 4 & EDAD_PREDIO1 == 0 & PUNTAJE1 == 0 & TIPO_CARACT_RES1 == 8) %>% 
-  split(., seq(nrow(.))) %>% 
-  map_dfr(~marca_manzana_row(.x))
+df_to_sas_1 <- df_to_sas_1 %>% mutate(AREA_TERRENO = paste0(AREA_TERRENO1, "-", AREA_TERRENO2)) %>% 
+  mutate(AREA_TERRENO = ifelse(AREA_TERRENO == "-", "            ", AREA_TERRENO))
 
-
-
-
-
-
-
-df_to_sas <- df_to_sas %>% as.data.table()
-df_to_sas[, .N, by = .(tabla, TIPO_CARACT_RES, CODIGO_USO)]
-df_to_sas %>% setnames("tabla", "TABLA")
-df_to_sas[, CODIGO_USO := str_pad(CODIGO_USO, width = 3, side = "left", pad = "0")]
-
-
-wb <- createWorkbook("Camilo Avellaneda")
-addWorksheet(wb, "Consolidado")
-writeData(wb, "Consolidado", df_completo)
-saveWorkbook(wb, paste0("output/", str_replace_all(Sys.Date(), c("-" = "", "2021" = "21")),
-                        nombre_export, ".xlsx"), overwrite = T)
-
-wb1 <- createWorkbook("Camilo Avellaneda")
-addWorksheet(wb1, "Consolidado_est")
-writeData(wb1, "Consolidado_est", consolidado[, c("EC_MO_ID", "EDAD_PREDIO1", "PUNTAJE1", "VAL_METRO_CUAD")])
-saveWorkbook(wb1, paste0("output/", str_replace_all(Sys.Date(), c("-" = "", "2021" = "21")),
-                        nombre_export_est, ".xlsx"), overwrite = T)
-
-
-
+df_to_sas_1 <- df_to_sas_1 %>%
+  mutate(CODIGO_USO = ifelse(CODIGO_USO != "", str_pad(CODIGO_USO, width = 3, side = "left", pad = "0"), "   "),
+         AREA_USO = ifelse(AREA_USO == "0", "               ", AREA_USO)) 
+#df_to_sas_1$AREA_USO %>% table
+# df_to_sas_1 <- df_to_sas_1 %>% 
+#   mutate(LLAVE = paste0(tabla, "_", CODIGO_USO, "_",EDAD_PREDIO1, "_",PUNTAJE1, "_",AREA_USO, "_",TIPO_CARACT_RES, "_",AREA_TERRENO))
+# df_to_sas_1 %>% group_by(tabla, AREA_TERRENO) %>% count
+# 
+# df_to_sas_1 %>% filter(tabla == "T07" & EDAD_PREDIO1 == 0 & PUNTAJE1 == 0) %>%
+#   dplyr::select(tabla, CODIGO_USO, EDAD_PREDIO1, PUNTAJE1, AREA_USO, TIPO_CARACT_RES, AREA_TERRENO, LLAVE)
 date <- str_replace_all(Sys.Date(), c("-" = "", "2021" = "21"))
-write.csv(df_to_sas, paste0("output/", date, "_RESULTADO_BASE_VALORES_NPH_TABLAS_SAS.csv"), na = "", row.names = FALSE)
+write.csv(df_to_sas_1, paste0("output/", date, "_RESULTADO_BASE_VALORES_NPH_TABLAS_SAS.csv"), na = ".",  row.names = FALSE)
         
         
 

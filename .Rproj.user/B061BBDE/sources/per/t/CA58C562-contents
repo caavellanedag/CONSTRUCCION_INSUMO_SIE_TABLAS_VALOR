@@ -7,6 +7,62 @@ convert_to_numeric <- function(.x){
 }
 
 
+
+uso_row <- function(row){
+  if(row$CODIGO_USO1 == row$CODIGO_USO2){
+    row_1 <- row %>% 
+      mutate(CODIGO_USO = CODIGO_USO1) %>% 
+      dplyr::select(tabla, EC_MO_ID, CODIGO_USO,
+                    EDAD_PREDIO1, PUNTAJE1, AREA_USO1,
+                    AREA_USO2, VAL_METRO_CUAD, AREA_USO,
+                    TIPO_CARACT_RES)
+  }else{
+    row_1 <- row %>% 
+      pivot_longer(names_to = "USO_PREVIO", values_to = "CODIGO_USO", cols = c("CODIGO_USO1", "CODIGO_USO2")) %>% 
+      as.data.frame() %>% 
+      dplyr::select(tabla, EC_MO_ID, CODIGO_USO,
+                    EDAD_PREDIO1, PUNTAJE1, AREA_USO1,
+                    AREA_USO2, VAL_METRO_CUAD, AREA_USO,
+                    TIPO_CARACT_RES)
+  }
+  return(row_1)
+}
+marca_manzana_row <- function(row){
+  #row <- t2
+  #row <- t(row) %>% as.data.frame()
+  if(row$TIPO_CARACT_RES2 == 8 & row$TIPO_CARACT_RES1 %in% c(0, 1)){
+    row_1 <- row  %>% mutate(TIPO_CARACT_RES = NA) %>% 
+      dplyr::select(tabla, EC_MO_ID, CODIGO_USO1, CODIGO_USO2,
+                    EDAD_PREDIO1, PUNTAJE1, AREA_USO1,
+                    AREA_USO2, VAL_METRO_CUAD, AREA_USO,
+                    TIPO_CARACT_RES)
+  }else if(row$TIPO_CARACT_RES1 == row$TIPO_CARACT_RES2){
+    row_1 <- row  %>% mutate(TIPO_CARACT_RES = TIPO_CARACT_RES1) %>% 
+      dplyr::select(tabla, EC_MO_ID, CODIGO_USO1, CODIGO_USO2,
+                    EDAD_PREDIO1, PUNTAJE1, AREA_USO1,
+                    AREA_USO2, VAL_METRO_CUAD, AREA_USO,
+                    TIPO_CARACT_RES)
+  }else if((as.numeric(as.character(row$TIPO_CARACT_RES2)) == (as.numeric(as.character(row$TIPO_CARACT_RES1)) + 1))){
+    row_1 <- row %>% 
+      pivot_longer(names_to = "TIPO_CARACT_PREVIA", values_to = "TIPO_CARACT_RES", cols = c("TIPO_CARACT_RES1", "TIPO_CARACT_RES2")) %>% 
+      as.data.frame() %>%
+      dplyr::select(tabla, EC_MO_ID, CODIGO_USO1, CODIGO_USO2,
+                    EDAD_PREDIO1, PUNTAJE1, AREA_USO1,
+                    AREA_USO2, VAL_METRO_CUAD, AREA_USO,
+                    TIPO_CARACT_RES)
+  }else{
+    TIPO_CARACT_RES <- as.numeric(as.character(row$TIPO_CARACT_RES1)):as.numeric(as.character(row$TIPO_CARACT_RES2))
+    row_1 <- cbind(row, TIPO_CARACT_RES) %>%
+      as.data.frame() %>%
+      dplyr::select(tabla, EC_MO_ID, CODIGO_USO1, CODIGO_USO2,
+                    EDAD_PREDIO1, PUNTAJE1, AREA_USO1,
+                    AREA_USO2, VAL_METRO_CUAD, AREA_USO,
+                    TIPO_CARACT_RES)
+  }
+  return(row_1)
+}
+
+
 make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 = NA, tabla_correlativa){
   if(str_detect(tabla_selected, "^T01")){
     Tabla_valores <- read.xlsx(excel_name, tabla_selected)
@@ -619,9 +675,9 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                       AREA_TERRENO2, 
                       OBS)
       
-    }else if(AREA_USO1 == "350,01" & AREA_USO2 == "1000"){
+    }else if(AREA_USO1 == "350.01" & AREA_USO2 == "1000"){
       
-      Tabla_valores <- read.xlsx(excel_name, "350,01-1000")
+      Tabla_valores <- read.xlsx(excel_name, "350.01-1000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -642,7 +698,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "11",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "350,01",
+               AREA_USO1 = "350.01",
                AREA_USO2 = "1000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -682,7 +738,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "25",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "350,01",
+               AREA_USO1 = "350.01",
                AREA_USO2 = "1000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -722,7 +778,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "80",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "350,01",
+               AREA_USO1 = "350.01",
                AREA_USO2 = "1000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -750,9 +806,9 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                       AREA_TERRENO2, 
                       OBS)
       
-    }else if(AREA_USO1 == "1000,01" & AREA_USO2 == "6000"){
+    }else if(AREA_USO1 == "1000.01" & AREA_USO2 == "6000"){
       
-      Tabla_valores <- read.xlsx(excel_name, "1000,01-6000")
+      Tabla_valores <- read.xlsx(excel_name, "1000.01-6000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -773,7 +829,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "11",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "1000,01",
+               AREA_USO1 = "1000.01",
                AREA_USO2 = "6000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -813,7 +869,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "25",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "1000,01",
+               AREA_USO1 = "1000.01",
                AREA_USO2 = "6000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -853,7 +909,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "80",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "1000,01",
+               AREA_USO1 = "1000.01",
                AREA_USO2 = "6000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -881,10 +937,10 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                       AREA_TERRENO2, 
                       OBS)
       
-    }else if(AREA_USO1 == "6000,01" & AREA_USO2 == "1000000"){
+    }else if(AREA_USO1 == "6000.01" & AREA_USO2 == "1000000"){
       
       
-      Tabla_valores <- read.xlsx(excel_name, "6000,01-1000000")
+      Tabla_valores <- read.xlsx(excel_name, "6000.01-1000000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -905,7 +961,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "11",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "6000,01",
+               AREA_USO1 = "6000.01",
                AREA_USO2 = "1000000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -945,7 +1001,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "25",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "6000,01",
+               AREA_USO1 = "6000.01",
                AREA_USO2 = "1000000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -985,7 +1041,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "80",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "6000,01",
+               AREA_USO1 = "6000.01",
                AREA_USO2 = "1000000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -1013,9 +1069,9 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                       AREA_TERRENO2, 
                       OBS)
       
-    }else(
+    }else{
       stop("La tabla T03 no considera ese rango de valores de áreas de uso.")
-    )
+    }
     Tabla_final <- Tabla_1 %>% rbind(Tabla_2) %>% 
       rbind(Tabla_3) %>% as.data.frame()
     
@@ -1768,7 +1824,58 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "12",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "500,01",
+               AREA_USO1 = "350",
+               AREA_USO2 = "500",
+               ESTRATO1 = 0,
+               ESTRATO2 = 6,
+               FORMULA = "",
+               AREA_TERRENO1 = "",
+               AREA_TERRENO2 = "", 
+               OBS = "") %>% 
+        dplyr::select(VIGENCIA,
+                      EC_MO_ID,	
+                      CODIGO_USO1,	
+                      CODIGO_USO2,
+                      TIPO_CARACT_RES1,	
+                      TIPO_CARACT_RES2,
+                      PUNTAJE1,	
+                      PUNTAJE2,	
+                      EDAD_PREDIO1,
+                      EDAD_PREDIO2,
+                      AREA_USO1,
+                      AREA_USO2,
+                      ESTRATO1,
+                      ESTRATO2,
+                      VAL_METRO_CUAD,
+                      FORMULA,
+                      AREA_TERRENO1,
+                      AREA_TERRENO2, 
+                      OBS)
+      
+    }else if(AREA_USO1 == "500.01" & AREA_USO2 == "750"){
+      
+      Tabla_valores <- read.xlsx(excel_name, "500.01-750")
+      codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
+      
+      Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
+      Tabla_valores[1, 1] <- "EDAD_PREDIO1"
+      colnames(Tabla_valores) <- Tabla_valores[1, ]
+      Tabla_valores <- Tabla_valores[-1, ]
+      
+      Tabla_final <- Tabla_valores %>% 
+        mutate_if(is.character, convert_to_numeric) %>% 
+        pivot_longer( names_to = "PUNTAJE1", cols = 2:102,
+                      values_to = "VAL_METRO_CUAD") %>% 
+        mutate(PUNTAJE1 = as.numeric(as.character(str_replace_all(PUNTAJE1, "V", ""))),
+               EDAD_PREDIO2 = EDAD_PREDIO1,
+               PUNTAJE2 = PUNTAJE1,
+               VIGENCIA = 2022,
+               EC_MO_ID = codigo_produccion_sel$codigo_produccion,
+               CODIGO_USO1	= "12",
+               CODIGO_USO2	= "12",
+               TIPO_CARACT_RES1 = 0,
+               TIPO_CARACT_RES2 = 8,
+               AREA_USO1 = "500.01",
                AREA_USO2 = "750",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -1796,9 +1903,10 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                       AREA_TERRENO2, 
                       OBS)
       
-    }else if(AREA_USO1 == "500,01" & AREA_USO2 == "750"){
       
-      Tabla_valores <- read.xlsx(excel_name, "500,01-750")
+    }else if(AREA_USO1 == "750.01" & AREA_USO2 == "2000"){
+      
+      Tabla_valores <- read.xlsx(excel_name, "750.01-2000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -1819,59 +1927,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "12",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "500,01",
-               AREA_USO2 = "750",
-               ESTRATO1 = 0,
-               ESTRATO2 = 6,
-               FORMULA = "",
-               AREA_TERRENO1 = "",
-               AREA_TERRENO2 = "", 
-               OBS = "") %>% 
-        dplyr::select(VIGENCIA,
-                      EC_MO_ID,	
-                      CODIGO_USO1,	
-                      CODIGO_USO2,
-                      TIPO_CARACT_RES1,	
-                      TIPO_CARACT_RES2,
-                      PUNTAJE1,	
-                      PUNTAJE2,	
-                      EDAD_PREDIO1,
-                      EDAD_PREDIO2,
-                      AREA_USO1,
-                      AREA_USO2,
-                      ESTRATO1,
-                      ESTRATO2,
-                      VAL_METRO_CUAD,
-                      FORMULA,
-                      AREA_TERRENO1,
-                      AREA_TERRENO2, 
-                      OBS)
-      
-      
-    }else if(AREA_USO1 == "750,01" & AREA_USO2 == "2000"){
-      
-      Tabla_valores <- read.xlsx(excel_name, "750,01-2000")
-      codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
-      
-      Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
-      Tabla_valores[1, 1] <- "EDAD_PREDIO1"
-      colnames(Tabla_valores) <- Tabla_valores[1, ]
-      Tabla_valores <- Tabla_valores[-1, ]
-      
-      Tabla_final <- Tabla_valores %>% 
-        mutate_if(is.character, convert_to_numeric) %>% 
-        pivot_longer( names_to = "PUNTAJE1", cols = 2:102,
-                      values_to = "VAL_METRO_CUAD") %>% 
-        mutate(PUNTAJE1 = as.numeric(as.character(str_replace_all(PUNTAJE1, "V", ""))),
-               EDAD_PREDIO2 = EDAD_PREDIO1,
-               PUNTAJE2 = PUNTAJE1,
-               VIGENCIA = 2022,
-               EC_MO_ID = codigo_produccion_sel$codigo_produccion,
-               CODIGO_USO1	= "12",
-               CODIGO_USO2	= "12",
-               TIPO_CARACT_RES1 = 0,
-               TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "750,01",
+               AREA_USO1 = "750.01",
                AREA_USO2 = "2000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -1899,9 +1955,9 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                       AREA_TERRENO2, 
                       OBS)
       
-    }else if(AREA_USO1 == "2000,01" & AREA_USO2 == "5000"){
+    }else if(AREA_USO1 == "2000.01" & AREA_USO2 == "5000"){
       
-      Tabla_valores <- read.xlsx(excel_name, "2000,01-5000")
+      Tabla_valores <- read.xlsx(excel_name, "2000.01-5000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -1923,7 +1979,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "12",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "2000,01",
+               AREA_USO1 = "2000.01",
                AREA_USO2 = "5000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -1951,9 +2007,9 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                       AREA_TERRENO2, 
                       OBS)
       
-    }else if(AREA_USO1 == "5000,01" & AREA_USO2 == "10000"){
+    }else if(AREA_USO1 == "5000.01" & AREA_USO2 == "10000"){
       
-      Tabla_valores <- read.xlsx(excel_name, "5000,01-10000")
+      Tabla_valores <- read.xlsx(excel_name, "5000.01-10000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -1975,7 +2031,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "12",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "5000,01",
+               AREA_USO1 = "5000.01",
                AREA_USO2 = "10000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2003,9 +2059,168 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                       AREA_TERRENO2, 
                       OBS)
       
-    }else(
+    }else{
       stop("La tabla T03 no considera ese rango de valores de áreas de uso.")
-    )
+    }
+  }else if(str_detect(tabla_selected, "^T07")){
+    if(AREA_USO1 == "0" & AREA_USO2 == "100"){
+      
+      Tabla_valores <- read.xlsx(excel_name, "0-100")
+      codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
+      
+      Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
+      Tabla_valores[1, 1] <- "EDAD_PREDIO1"
+      colnames(Tabla_valores) <- Tabla_valores[1, ]
+      Tabla_valores <- Tabla_valores[-1, ]
+      
+      Tabla_final <- Tabla_valores %>% 
+        mutate_if(is.character, convert_to_numeric) %>% 
+        pivot_longer( names_to = "PUNTAJE1", cols = 2:102,
+                      values_to = "VAL_METRO_CUAD") %>% 
+        mutate(PUNTAJE1 = as.numeric(as.character(str_replace_all(PUNTAJE1, "V", ""))),
+               EDAD_PREDIO2 = EDAD_PREDIO1,
+               PUNTAJE2 = PUNTAJE1,
+               VIGENCIA = 2022,
+               EC_MO_ID = codigo_produccion_sel$codigo_produccion,
+               CODIGO_USO1	= "22",
+               CODIGO_USO2	= "22",
+               TIPO_CARACT_RES1 = 0,
+               TIPO_CARACT_RES2 = 8,
+               AREA_USO1 = "0",
+               AREA_USO2 = "100",
+               ESTRATO1 = 0,
+               ESTRATO2 = 6,
+               FORMULA = "",
+               AREA_TERRENO1 = "",
+               AREA_TERRENO2 = "", 
+               OBS = "") %>% 
+        dplyr::select(VIGENCIA,
+                      EC_MO_ID,	
+                      CODIGO_USO1,	
+                      CODIGO_USO2,
+                      TIPO_CARACT_RES1,	
+                      TIPO_CARACT_RES2,
+                      PUNTAJE1,	
+                      PUNTAJE2,	
+                      EDAD_PREDIO1,
+                      EDAD_PREDIO2,
+                      AREA_USO1,
+                      AREA_USO2,
+                      ESTRATO1,
+                      ESTRATO2,
+                      VAL_METRO_CUAD,
+                      FORMULA,
+                      AREA_TERRENO1,
+                      AREA_TERRENO2, 
+                      OBS)
+      
+    }else if(AREA_USO1 == "100.01" & AREA_USO2 == "350"){
+      
+      Tabla_valores <- read.xlsx(excel_name, "100.01-350")
+      codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
+      
+      Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
+      Tabla_valores[1, 1] <- "EDAD_PREDIO1"
+      colnames(Tabla_valores) <- Tabla_valores[1, ]
+      Tabla_valores <- Tabla_valores[-1, ]
+      
+      
+      Tabla_final <- Tabla_valores %>% 
+        mutate_if(is.character, convert_to_numeric) %>% 
+        pivot_longer( names_to = "PUNTAJE1", cols = 2:102,
+                      values_to = "VAL_METRO_CUAD") %>% 
+        mutate(PUNTAJE1 = as.numeric(as.character(str_replace_all(PUNTAJE1, "V", ""))),
+               EDAD_PREDIO2 = EDAD_PREDIO1,
+               PUNTAJE2 = PUNTAJE1,
+               VIGENCIA = 2022,
+               EC_MO_ID = codigo_produccion_sel$codigo_produccion,
+               CODIGO_USO1	= "22",
+               CODIGO_USO2	= "22",
+               TIPO_CARACT_RES1 = 0,
+               TIPO_CARACT_RES2 = 8,
+               AREA_USO1 = "100.01",
+               AREA_USO2 = "350",
+               ESTRATO1 = 0,
+               ESTRATO2 = 6,
+               FORMULA = "",
+               AREA_TERRENO1 = "",
+               AREA_TERRENO2 = "", 
+               OBS = "") %>% 
+        dplyr::select(VIGENCIA,
+                      EC_MO_ID,	
+                      CODIGO_USO1,	
+                      CODIGO_USO2,
+                      TIPO_CARACT_RES1,	
+                      TIPO_CARACT_RES2,
+                      PUNTAJE1,	
+                      PUNTAJE2,	
+                      EDAD_PREDIO1,
+                      EDAD_PREDIO2,
+                      AREA_USO1,
+                      AREA_USO2,
+                      ESTRATO1,
+                      ESTRATO2,
+                      VAL_METRO_CUAD,
+                      FORMULA,
+                      AREA_TERRENO1,
+                      AREA_TERRENO2, 
+                      OBS)
+      
+    }else if(AREA_USO1 == "350.01" & AREA_USO2 == "100000"){
+      
+      Tabla_valores <- read.xlsx(excel_name, "350.01-100000")
+      codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
+      
+      Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
+      Tabla_valores[1, 1] <- "EDAD_PREDIO1"
+      colnames(Tabla_valores) <- Tabla_valores[1, ]
+      Tabla_valores <- Tabla_valores[-1, ]
+      
+      
+      Tabla_final <- Tabla_valores %>% 
+        mutate_if(is.character, convert_to_numeric) %>% 
+        pivot_longer( names_to = "PUNTAJE1", cols = 2:102,
+                      values_to = "VAL_METRO_CUAD") %>% 
+        mutate(PUNTAJE1 = as.numeric(as.character(str_replace_all(PUNTAJE1, "V", ""))),
+               EDAD_PREDIO2 = EDAD_PREDIO1,
+               PUNTAJE2 = PUNTAJE1,
+               VIGENCIA = 2022,
+               EC_MO_ID = codigo_produccion_sel$codigo_produccion,
+               CODIGO_USO1	= "22",
+               CODIGO_USO2	= "22",
+               TIPO_CARACT_RES1 = 0,
+               TIPO_CARACT_RES2 = 8,
+               AREA_USO1 = "350.01",
+               AREA_USO2 = "100000",
+               ESTRATO1 = 0,
+               ESTRATO2 = 6,
+               FORMULA = "",
+               AREA_TERRENO1 = "",
+               AREA_TERRENO2 = "", 
+               OBS = "") %>% 
+        dplyr::select(VIGENCIA,
+                      EC_MO_ID,	
+                      CODIGO_USO1,	
+                      CODIGO_USO2,
+                      TIPO_CARACT_RES1,	
+                      TIPO_CARACT_RES2,
+                      PUNTAJE1,	
+                      PUNTAJE2,	
+                      EDAD_PREDIO1,
+                      EDAD_PREDIO2,
+                      AREA_USO1,
+                      AREA_USO2,
+                      ESTRATO1,
+                      ESTRATO2,
+                      VAL_METRO_CUAD,
+                      FORMULA,
+                      AREA_TERRENO1,
+                      AREA_TERRENO2, 
+                      OBS)
+      
+    }else{
+      stop("La tabla T07 no considera ese rango de valores de áreas de uso.")
+    }
   }else if(str_detect(tabla_selected, "^T19")){
     if(AREA_USO1 == "0" & AREA_USO2 == "350"){
       Tabla_valores <- read.xlsx(excel_name, "0-350")
@@ -2142,8 +2357,8 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
       Tabla_final <- Tabla_1 %>% rbind(Tabla_2) %>%
         rbind(Tabla_3) %>% as.data.frame()
       
-    }else if(AREA_USO1 == "350,01" & AREA_USO2 == "1000"){
-      Tabla_valores <- read.xlsx(excel_name, "350,01-1000")
+    }else if(AREA_USO1 == "350.01" & AREA_USO2 == "1000"){
+      Tabla_valores <- read.xlsx(excel_name, "350.01-1000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -2166,7 +2381,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "8",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "350,01",
+               AREA_USO1 = "350.01",
                AREA_USO2 = "1000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2207,7 +2422,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "14",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "350,01",
+               AREA_USO1 = "350.01",
                AREA_USO2 = "1000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2247,7 +2462,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "23",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "350,01",
+               AREA_USO1 = "350.01",
                AREA_USO2 = "1000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2277,8 +2492,8 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
       Tabla_final <- Tabla_1 %>% rbind(Tabla_2) %>%
         rbind(Tabla_3) %>% as.data.frame()
       
-    }else if(AREA_USO1 == "1000,01" & AREA_USO2 == "6000"){
-      Tabla_valores <- read.xlsx(excel_name, "1000,01-6000")
+    }else if(AREA_USO1 == "1000.01" & AREA_USO2 == "6000"){
+      Tabla_valores <- read.xlsx(excel_name, "1000.01-6000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -2301,7 +2516,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "8",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "1000,01",
+               AREA_USO1 = "1000.01",
                AREA_USO2 = "6000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2342,7 +2557,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "14",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "1000,01",
+               AREA_USO1 = "1000.01",
                AREA_USO2 = "6000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2382,7 +2597,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "23",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "1000,01",
+               AREA_USO1 = "1000.01",
                AREA_USO2 = "6000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2412,8 +2627,8 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
       Tabla_final <- Tabla_1 %>% rbind(Tabla_2) %>%
         rbind(Tabla_3) %>% as.data.frame()
       
-    }else if(AREA_USO1 == "6000,01" & AREA_USO2 == "100000"){
-      Tabla_valores <- read.xlsx(excel_name, "6000,01-100000")
+    }else if(AREA_USO1 == "6000.01" & AREA_USO2 == "100000"){
+      Tabla_valores <- read.xlsx(excel_name, "6000.01-100000")
       codigo_produccion_sel <- tabla_correlativa[tabla == tabla_selected, "codigo_produccion"]
       
       Tabla_valores[1, ] <- as.character(paste0("V", Tabla_valores[1, ]))
@@ -2436,7 +2651,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "8",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "6000,01",
+               AREA_USO1 = "6000.01",
                AREA_USO2 = "100000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2477,7 +2692,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "14",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "6000,01",
+               AREA_USO1 = "6000.01",
                AREA_USO2 = "100000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2517,7 +2732,7 @@ make_txt_file <- function(excel_name, tabla_selected, AREA_USO1 = NA, AREA_USO2 
                CODIGO_USO2	= "23",
                TIPO_CARACT_RES1 = 0,
                TIPO_CARACT_RES2 = 8,
-               AREA_USO1 = "6000,01",
+               AREA_USO1 = "6000.01",
                AREA_USO2 = "100000",
                ESTRATO1 = 0,
                ESTRATO2 = 6,
@@ -2656,11 +2871,11 @@ validate_values_tables <- function(df_table, tabla_correlativa){
     }  
     if(unique(df_table$AREA_USO1) == "0" & unique(df_table$AREA_USO2) == "350"){
       
-    }else if(unique(df_table$AREA_USO1) == "350,01" & unique(df_table$AREA_USO2) == "1000"){
+    }else if(unique(df_table$AREA_USO1) == "350.01" & unique(df_table$AREA_USO2) == "1000"){
       
-    }else if(unique(df_table$AREA_USO1) == "1000,01" & unique(df_table$AREA_USO2) == "6000"){
+    }else if(unique(df_table$AREA_USO1) == "1000.01" & unique(df_table$AREA_USO2) == "6000"){
       
-    }else if(unique(df_table$AREA_USO1)  == "6000,01" & unique(df_table$AREA_USO2) == "1000000"){
+    }else if(unique(df_table$AREA_USO1)  == "6000.01" & unique(df_table$AREA_USO2) == "1000000"){
       
     }else{
       stop("Las áreas asignadas no son correctas.")
@@ -2747,13 +2962,13 @@ validate_values_tables <- function(df_table, tabla_correlativa){
     }
     
     if(unique(df_table$AREA_USO1) == "350" & unique(df_table$AREA_USO2) == "500"){
-    }else if(unique(df_table$AREA_USO1) == "500,01" & unique(df_table$AREA_USO2) == "750"){
+    }else if(unique(df_table$AREA_USO1) == "500.01" & unique(df_table$AREA_USO2) == "750"){
       
-    }else if(unique(df_table$AREA_USO1) == "750,01" & unique(df_table$AREA_USO2) == "2000"){
+    }else if(unique(df_table$AREA_USO1) == "750.01" & unique(df_table$AREA_USO2) == "2000"){
       
-    }else if(unique(df_table$AREA_USO1) == "2000,01" & unique(df_table$AREA_USO2) == "5000"){
+    }else if(unique(df_table$AREA_USO1) == "2000.01" & unique(df_table$AREA_USO2) == "5000"){
       
-    }else if(unique(df_table$AREA_USO1)  == "5000,01" & unique(df_table$AREA_USO2) == "10000"){
+    }else if(unique(df_table$AREA_USO1)  == "5000.01" & unique(df_table$AREA_USO2) == "10000"){
       
     }else{
       stop("Las áreas asignadas no son correctas.")
@@ -2779,11 +2994,11 @@ validate_values_tables <- function(df_table, tabla_correlativa){
     }
     if(unique(df_table$AREA_USO1) == "0" & unique(df_table$AREA_USO2) == "350"){
       
-    }else if(unique(df_table$AREA_USO1) == "350,01" & unique(df_table$AREA_USO2) == "1000"){
+    }else if(unique(df_table$AREA_USO1) == "350.01" & unique(df_table$AREA_USO2) == "1000"){
       
-    }else if(unique(df_table$AREA_USO1) == "1000,01" & unique(df_table$AREA_USO2) == "6000"){
+    }else if(unique(df_table$AREA_USO1) == "1000.01" & unique(df_table$AREA_USO2) == "6000"){
       
-    }else if(unique(df_table$AREA_USO1)  == "6000,01" & unique(df_table$AREA_USO2) == "100000"){
+    }else if(unique(df_table$AREA_USO1)  == "6000.01" & unique(df_table$AREA_USO2) == "100000"){
       
     }else{
       stop("Las áreas asignadas no son correctas.")
